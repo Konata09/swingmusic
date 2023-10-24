@@ -50,9 +50,9 @@ class HandleArgs:
             log.error("ERROR: LASTFM_API_KEY not set in environment")
             sys.exit(0)
 
-        if not posthog_key:
-            log.error("ERROR: POSTHOG_API_KEY not set in environment")
-            sys.exit(0)
+        # if not posthog_key:
+        #     log.error("ERROR: POSTHOG_API_KEY not set in environment")
+        #     sys.exit(0)
 
         try:
             with open("./app/configs.py", "w", encoding="utf-8") as file:

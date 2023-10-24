@@ -118,7 +118,7 @@ class Db:
 
 class FLASKVARS:
     FLASK_PORT = 1970
-    FLASK_HOST = "localhost"
+    FLASK_HOST = "192.168.11.4"
 
     @classmethod
     def get_flask_port(cls):

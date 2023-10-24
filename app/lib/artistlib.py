@@ -63,7 +63,11 @@ class DownloadImage:
         Downloads the image from the url.
         """
         try:
-            return Image.open(BytesIO(requests.get(url, timeout=10).content))
+            res = requests.get(url, timeout=20, proxies={
+                "http": "socks5h://192.168.11.7:1080",
+                "https": "socks5h://192.168.11.7:1080",
+            })
+            return Image.open(BytesIO(res.content))
         except UnidentifiedImageError:
             return None
 
@@ -96,7 +100,7 @@ class CheckArtistImages:
         # process the rest
         key_artist_map = ((instance_key, artist) for artist in artists)
 
-        with ThreadPoolExecutor(max_workers=14) as executor:
+        with ThreadPoolExecutor(max_workers=20) as executor:
             res = list(
                 tqdm(
                     executor.map(self.download_image, key_artist_map),
@@ -120,7 +124,7 @@ class CheckArtistImages:
             return
 
         img_path = (
-            Path(settings.Paths.get_artist_img_sm_path()) / f"{artist.artisthash}.webp"
+                Path(settings.Paths.get_artist_img_sm_path()) / f"{artist.artisthash}.webp"
         )
 
         if img_path.exists():
