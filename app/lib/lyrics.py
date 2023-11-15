@@ -52,7 +52,7 @@ def format_synced_lyrics(lines: list[str]):
 
 
 def get_lyrics_from_lrc(filepath: str):
-    with open(filepath, mode="r") as file:
+    with open(filepath, mode="r", encoding="utf-8") as file:
         lines = (f.removesuffix("\n") for f in file.readlines())
         return format_synced_lyrics(lines)
 
