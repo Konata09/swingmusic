@@ -4,15 +4,15 @@ This file is used to run the application.
 import logging
 import mimetypes
 import os
-
-import setproctitle
 from flask import request
 
-from app.telemetry import Telemetry
+import setproctitle
+
 from app.api import create_api
 from app.arg_handler import HandleArgs
 from app.lib.watchdogg import Watcher as WatchDog
 from app.periodic_scan import run_periodic_scans
+from app.plugins.register import register_plugins
 from app.settings import FLASKVARS, Keys
 from app.setup import run_setup
 from app.start_info_logger import log_startup_info
@@ -39,7 +39,6 @@ app = create_api()
 app.static_folder = get_home_res_path("client")
 
 
-# @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_client_files(path: str):
     """
@@ -50,14 +49,22 @@ def serve_client_files(path: str):
         return app.send_static_file(path)
 
     gzipped_path = path + ".gz"
+    user_agent = request.headers.get("User-Agent")
 
-    if request.headers.get("Accept-Encoding", "").find("gzip") >= 0:
+    is_safari = user_agent.find("Safari") >= 0 and user_agent.find("Chrome") < 0
+
+    if is_safari:
+        return app.send_static_file(path)
+
+    accepts_gzip = request.headers.get("Accept-Encoding", "").find("gzip") >= 0
+
+    if accepts_gzip:
         if os.path.exists(os.path.join(app.static_folder, gzipped_path)):
             response = app.make_response(app.send_static_file(gzipped_path))
             response.headers["Content-Encoding"] = "gzip"
             return response
-        else:
-            return app.send_static_file(path)
+
+    return app.send_static_file(path)
 
 
 @app.route("/")
@@ -70,7 +77,6 @@ def serve_client():
 
 @background
 def bg_run_setup() -> None:
-    run_setup()
     run_periodic_scans()
 
 
@@ -79,18 +85,15 @@ def start_watchdog():
     WatchDog().run()
 
 
-@background
-def init_telemetry():
-    Telemetry.init()
-
-
 def run_swingmusic():
     Keys.load()
     HandleArgs()
     log_startup_info()
+    run_setup()
     bg_run_setup()
+    register_plugins()
+
     start_watchdog()
-    init_telemetry()
 
     setproctitle.setproctitle(
         f"swingmusic - {FLASKVARS.FLASK_HOST}:{FLASKVARS.FLASK_PORT}"
