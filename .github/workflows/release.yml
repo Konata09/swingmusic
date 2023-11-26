@@ -51,7 +51,7 @@ jobs:
           npm install -g yarn
       - name: Clone client
         run: |
-          git clone https://github.com/swing-opensource/swingmusic-client.git
+          git clone https://github.com/cwilvx/swingmusic-client.git
       - name: Install dependencies & Build client
         run: |
           cd swingmusic-client
